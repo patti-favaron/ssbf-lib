@@ -1,4 +1,4 @@
-# ssbf-lib: A Fortran library, for importing, reading and writing "Simple ultraSonic anemometer Binary Format"
+# ssbf-lib: A Fortran library, for importing, reading and writing "Simple ultraSonic anemometer Binary Format" data files
 
 ## Main purpose and usefulness
 
@@ -14,4 +14,7 @@ The SSB format was developed to address these problems: it is a binary format, e
 
 Its _daily_ organization also encourages to deal with phenomena occurring on a time scale longer than one hour, as for example the tendency of airflow to recirculate in breeze regimens.
 
-## File naming convention
+## SSB format file naming convention
+
+The name of data files in SSBF cannot be assigned at will, but must conform to the specification YYYY-MM-DD.ssb, where YYYY represents the year, MM the month number, and DD the day number. The extension ".ssb" is nominal and mandatory.
+
