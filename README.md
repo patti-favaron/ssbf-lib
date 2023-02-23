@@ -1,22 +1,24 @@
-# ssbf-lib: A Fortran library for importing, reading and writing "Simple ultraSonic anemometer Binary Format" data files
+# ssbf-lib: An open-source file format and Fortran library for storing and using raw ultrasonic anemometer data
 
 by Patrizia Favaron (also mentioned as "the author" in following lines).
 
-## Motivation
+## Foreword, by Patrizia Favaron
 
-Three-dimensional anemometers can easily provide fast-sampling (10Hz+), accurate and high-resolution (1cm/s, 0.01°C) wind and temperature data whose processing (for example using _eddy covariance_ and Monin-Obukhov similarity theory) can provide both high-resolution mean wind and mean temperature information, and turbulence indicators like friction velocity, turbulent sensible heat flux or Obukhov length. These data may in turn be used as a basis for quantifying or predicting the "dispersivity" of lower atmosphere (the "Planetary Boundary Layer"), that is, the tendency of air in contact or close to the Earth surface to dilute and transport trace gases (e.g. human-generated pollutants) and particulates (PM-x, pollens, spores, tiny animals).
+Dear colleague, this spec has arisen from my attempts to use in efficient (and _energy-friendly_ :) ) manner the processing of ultrasonic anemometer data. For ease of diffusion I've written it in my approximation of English, and done my best. However, I'm well aware this is _not_ English: in sincerity, I could better name it "Kasseler Englisch" (and its pronounciation, regrettably, quite resembles that of dr.Strangelove's in mr.Kubrick movie - at least, from me).
 
-Data from three-dimensional ultrasonic anemometers are most often collected in proprietary format files, with typically a hourly organization.
+I'm not asking, then, for your indulgence. But in the same time I'm aware that most of you, with the possible exception of some inhabitants of the area of Kassel, are not that accustomed with Kasseler Englisch and its, well, nuances. So, feel free to correct me, and ask for clarifications whenever you need them.
 
-Adoption of a hourly organization, i.e. files containing data collected during a specific hour, is quite a historical heritage: at 10 Hz, 36000 sonic quadruples (u,v,w,t) can be expected in a file: a number manageable enough, and likely to be stored in RAM on most computers from ate Nineties onwards.
+Yours, Patrizia.
 
-The lack of standardization, however, made difficult to share data among users. The textual nature of some of these formats added to this issue, inducing inefficiency in data retrieval and storage.
+And, of course, sorry so sloppy...
 
-The SSB format was developed to address these problems: it is a binary format, efficiently accessible in stream mode.
+## Core motivation
 
-Its _daily_ organization also encourages to deal with phenomena occurring on a time scale longer than one hour, as for example the tendency of airflow to recirculate in breeze regimens, which can be fully appreciated on a daily scale; addressing the study of such more-than-hourly phenomena using hourly files could be (by the author's direct experience) quite exposing to a lot of nitty-gritty code-writing to just arrange data so that hour 'i' really precedes 'i+1' in memory, time which could be used more productively addressing the scientific problem itself.
+Three-dimensional anemometers can easily provide fast-sampling (10Hz+), accurate and high-resolution (1cm/s, 0.01°C) wind and temperature data whose processing (for example using _eddy covariance_ and Monin-Obukhov similarity theory) can provide both high-resolution mean wind and mean temperature information, along with turbulence indicators like friction velocity, turbulent sensible heat flux or Obukhov length.
 
-In addition, the size of an SSB file is "very small" for today's computers (somewhat less than 9 megabytes for data sampled at 10 Hz), and in the same time "large enough" to allow fast data transfer rates on local and network channels. Also, adopting daily files instead of hourly allow users to deal with 24 time less files, a strong bonus in operating systems placing penalties to large data file counts (as the author knows, Microsoft Windows _was_ prone to this problems in the past; and anyway, anyone who tried to list a some-years data set organized hourly on an FTP connection while counting time to gather children after school knows very well which the consequence of a "many extremely small files" approach means - a little crudelty, imposed by technological constraints in last century Nineties, but no longer needed in 2023).
+These data may in turn be used as a basis for quantifying or predicting the "dispersivity" of lower atmosphere (the "Planetary Boundary Layer"), that is, the tendency of air in contact or close to the Earth surface to dilute and transport trace gases (e.g. human-generated pollutants) and particulates (PM-x, pollens, spores, tiny animals).
+
+However, ultrasonic anemometer data files tend to be much larger than their electro-mechanical anemometer counterparts: the necessity then arises to deal with massive data sets efficiently (a measurement campaign may produce many gigabytes of raw data).
 
 ## Relevant acronyms and terminology
 
@@ -26,7 +28,23 @@ In addition, the size of an SSB file is "very small" for today's computers (some
 
 So we can say that specific file "is SSB", while "this specification refers to SSBF". Occasionally the author might use a longer version of the latter by writing or saying something like "this file is encoded in SSB format".
 
-Note from the author: I don't like specially acronyms, but this one was quite a necessity, given its expansion being really very long and quite annoying; I hope "SSB" and "SSBF" are reasonably easy to remember, and am open to adopt any better idea. Of course I'm aware the acronym SSB overlaps another well-known object in communications engineering.
+Note from the author: _I don't like specially acronyms, but this one was quite a necessity, given its expansion being really very long and quite annoying; I hope "SSB" and "SSBF" are reasonably easy to remember, and am open to adopt any better idea. Of course I'm aware the acronym SSB overlaps another well-known object in communications engineering, and may then require some disambiguation, maybe a name change: I'm open to it, too_.
+
+## Drawbacks of extant ultrasonic anemometer data formats
+
+Data from three-dimensional ultrasonic anemometers are most often collected in proprietary format files, with typically a hourly organization.
+
+Adoption of a hourly organization, i.e. files containing data collected during a specific hour, is quite a historical heritage: at 10 Hz, 36000 sonic quadruples (u,v,w,t) can be expected in a file: a number manageable enough, and likely to be stored in RAM on most computers from ate Nineties onwards.
+
+The lack of standardization, however, made difficult to share data among users. The textual nature of some of these formats added to this issue, inducing inefficiency in data retrieval and storage.
+
+The SSB format was developed to address these problems: it is a binary format, efficiently accessible in stream mode.
+
+## Advantages of SSBF
+
+Its _daily_ organization also encourages to deal with phenomena occurring on a time scale longer than one hour, as for example the tendency of airflow to recirculate in breeze regimens, which can be fully appreciated on a daily scale; addressing the study of such more-than-hourly phenomena using hourly files could be (by the author's direct experience) quite exposing to a lot of nitty-gritty code-writing to just arrange data so that hour 'i' really precedes 'i+1' in memory, time which could be used more productively addressing the scientific problem itself.
+
+In addition, the size of an SSB file is "very small" for today's computers (somewhat less than 9 megabytes for data sampled at 10 Hz), and in the same time "large enough" to allow fast data transfer rates on local and network channels. Also, adopting daily files instead of hourly allow users to deal with 24 time less files, a strong bonus in operating systems placing penalties to large data file counts (as the author knows, Microsoft Windows _was_ prone to this problems in the past; and anyway, anyone who tried to list a some-years data set organized hourly on an FTP connection while counting time to gather children after school knows very well which the consequence of a "many extremely small files" approach means - a little crudelty, imposed by technological constraints in last century Nineties, but no longer needed in 2023).
 
 ## What's inside this repository
 
@@ -56,11 +74,23 @@ Example:
 
 2012-03-08.ssb
 
-No restriction whatsoever is imposed on the directory an SSB file is stored in: SSB files can be copied, moved, compressed, used, freely.
+No restriction whatsoever applies the directory an SSB file is stored in: SSB files can be copied, moved, compressed, used, freely.
 
 ## Known limitations and wishful desires for future
 
-This specification refers to SSB _version 1.0_, which is limited to _ultrasonic anemometer quadruples_ each containing the three components of wind vector and the 
+This specification refers to SSB _version 1.0_, which is limited to _ultrasonic anemometer quadruples_ each containing the three components of wind vector and sonic temperature.
+
+This is enough for the class of problems the author is interested in, namely airflow and atmospheric dispersion study. But surely does not fully encompass the whole realm of ultrasonic anemometers use cases. At least, not yet.
+
+Version 2 is then necessary for the future, with _at least_ support of:
+
+- Scalar concentration (and their conversion rules) storage, in addition to velocity components and temperatures.
+- Conventional temperature and humidity, as read using ultrasonic anemometer analog inputs.
+- Improved metadata.
+
+It is the author's opinion that Version 2 needs not to be backwards-compatible with current Version 1, and that, as Version 1, it will be both self-descriptive and efficient. But this is fully open to discussion with anyone interested.
+
+Note from Patrizia: _Basically, I have not worked directly on "Version 2", because I have no easy access to "enriched" data. I know that would be relatively easy to do, but having no systematic way to test it I preferred to pass the hand to someone with better access and knowledge than me. Would a Version 2 initiative ever develop, I'll be glad taking part to it. So, please, let me to stay informed. Of course, anyone wishing to enter this project is welcome!_
 
 ## Format description
 
@@ -72,5 +102,19 @@ This is the native byte endianness on Intel, AMD and ARM architectures. As far t
 
 If using a big-endian architecture, the "open" statement acting on SSB files should be changed to specify little-endian form explicitly. This should be possible as the author knows on various compilers, but actual mode and syntax may vary. A cruder alternative, that is reading the whole data byte-wise and then converting to the appropriate local byte endianness, is also possible - the author preferred not using it in her "reference" implementation in sake of code clarity.
 
+### Data type abbreviations
+
+By its very nature, a "binary" format is strongly types, and a necessity arises to describe it in as a programmng language independent possible way.
+
+The following list shows the data types employed in Version 1 SSBF, plus likely extensions usable to document Version 2, would it exist on some time.
+
+- I1: Signed integer, 1 byte.
+- I2: Signed integer, 2 bytes, little-endian.
+- I4: Signed integer, 4 bytes, little-endian.
+- R4: Floating point number, IEEE-754 rev. 2008 format, 4 bytes, little-endian.
+- R8: Floating point number, IEEE-754 rev. 2008 format, 8 bytes, little-endian.
+- Cn, with 'n' a positive integer: fixed-length character string, ASCII, 1 byte per character, no encoding.
+
 ### Data sequence
 
+The following li
