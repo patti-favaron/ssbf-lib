@@ -172,3 +172,13 @@ However, even employing techniques like delta modulation, a further compression 
 
 ### Import formats
 
+The actual import formats are not documented here in detail, and the interested reader may find them directly in the source of function "DailyGet". Coding is hopefully straightforward by the way.
+
+The reason for this is the supported formats are very specific to the author's professional life. The only potentially standard is SonicLib, not supported in current implementation, and characterized by huge data volumes (almost 10 times the homologous binary form).
+
+Anyway, here is the list of supported formats to date, in sake of completeness and to the ones interester:
+
+- MeteoFlux Core V1
+- MeteoFlux Core V2
+
+(TO BE COMPLETED)
