@@ -117,4 +117,58 @@ The following list shows the data types employed in Version 1 SSBF, plus likely 
 
 ### Data sequence
 
-The following li
+The following list presents the contents, in order, of an SSB V1 file.
+
+- C6, "sMagicSequence", should be "ssb_v0" (unchanged from the author's internal "Version 0"; _will change_ on version 2; will not change for subversions of version 1, and in case backward compatibility will be maintained with the possible exception of specifying the currently not specified "iReserved1" and "iReserved2").
+- I1, "iReserved1", currently not specified for version 1, subversion 0; may be used in future subversions of version 1, and a definition will then be added.
+- I1, "iReserved2", currently not specified for version 1, subversion 0; may be used in future subversions of version 1, and a definition will then be added.
+- I2, "iYear", year of the date YYYY-MM-DD to which the data within file refer.
+- I1, "iMonth", month of the date YYYY-MM-DD to which the data within file refer.
+- I1, "iDay", day of the date YYYY-MM-DD to which the data within file refer.
+- I4, "iNumData", total number of raw data in current file.
+- I4(0:23), "ivNumData", array 0:23 of the total number of data in current file (may be 0 for 0 or more hours).
+- I2(1:iNumData), "ivSecondStamp", array 1:iNumData) of seconds-bound time stamp (values from 0 to 3599).
+- I2(1:iNumData), "ivU", X component of wind vector, in cm/s.
+- I2(1:iNumData), "ivV", Y component of wind vector, in cm/s.
+- I2(1:iNumData), "ivW", Z component of wind vector, in cm/s.
+- I2(1:iNumData), "ivT", sonic temperature, in hundredths of °C.
+
+Data is stored "column-wise", first all the X wind vector components, in order of increasing time stamp. Also notice that
+
+  iNumData == ivNumData
+   
+and the starting position of hour 'i' in vectors "ivSecondStamp", "ivU", "ivV", "ivW", "ivT" is
+
+  1 + sum(ivNumData(j), j = 1:(i-1)) if i > 1, or
+  1 in case i = 1
+  
+The final position of hour 'i' in vectors is the initial position plus ivNumHours(i) minus 1.
+
+Data in vectors are only valid: invalid data are not stored in SSB files.
+
+Because of that, and the fact "ivSecondStamp" is integer, it normally happens some consecutive data items share the same stamp value. This is a desired feature for the kind of processing for which SSB V1 has been conceived, namely eddy covariance and the like. In fact, counting repetitions in second stamp is used on read to estimate the sonic sampling frequency. Seconds stamp repetitions also imply that time-stamp based averaging scheme cannot operate below 1s resolution. Higher-than-1s resolutions can be obtained through proper use of modular arithmetics (as of the "mod" operator in Fortran) - this approach is incidentally followed in the example application "averager", with the only restriction that the averaging time is an exact divisor of 3600s (ie 1 hour).
+
+Use of a floating point time stamp will be evaluated in the future Version 2, where "exact" positioning of data in time could be used to align DAQ-provided data with sonic quadruples. In Version 1, a short (I2) seconds stamp has been intentionally preferred. May this mean Version 1 data may co-exist in future with Version 2? This is a project's, not Patrizia's, decision - but as far as I, the author, know, that's ot impossible.
+
+### Rationale behind column-wise format
+
+Why column-wise? The reason has to do with the way memory circuitry is organized in current-technology random-access memories: contiguous cells can be retrieved in bursts, at a speed limited only by the memory raw bandwidth.
+
+That given, the author did choose to store all data in the least-fragmented manner, that is, daily-columnwise.
+
+In practical terms, this allows a somewhat "faster" access to data on read.
+
+Data are retrieved from disks however, and advantages really become visible only once the data have been read from disk and reside in memory: compared to random-access memory all disks (including the solid state) are orders of magnitude slower. So in many cases the author expects only a marginal improvement during disk-intensive computing phases.
+
+However: marginal is still better than nothing.
+
+### Rationale behind I2 type for actual data
+
+The decision to store vectors "ivU", "ivV", "ivW" and "ivT" as I2, that is signed 16 bits (2 byte) integers, has been taken after an evaluation of current ultrasonic anemometer technology. Measurement resolution is in the order of 1 cm/s (1 hundredth of °C for temperature), with extremal values in the order of +/-100 m/s for wind, -100 to +100 °C for temperature - actual limits are much smaller. This allows to encode wind and temperature data in "fixed point" with two decimal digits, occupying somewhat less than 16 bytes.
+
+However, even employing techniques like delta modulation, a further compression to 8 bits is not always possible, and a huge increase in complexity would be necessary. So the author considered 16 bits as the best technical compromise between efficiency and simplicity.
+
+## Reference implementation
+
+### Import formats
+
